@@ -32,7 +32,8 @@ function toUint8Array(content: string | ArrayBuffer): Uint8Array {
  * Uses .slice(0) to create a copy that can be transferred.
  */
 function createTransferableBuffer(uint8Array: Uint8Array): ArrayBuffer {
-    return transfer(uint8Array.buffer.slice(0) as ArrayBuffer, [uint8Array.buffer.slice(0) as ArrayBuffer]);
+    const exact = uint8Array.buffer.slice(uint8Array.byteOffset, uint8Array.byteOffset + uint8Array.byteLength) as ArrayBuffer;
+    return transfer(exact, [exact]);
 }
 
 const api = {

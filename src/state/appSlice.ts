@@ -335,7 +335,8 @@ export const appSlice = createSlice({
                     state.lastNoteId = action.payload.newNoteId;
                     state.status = AppStatus.READY;
                 }
-                const shouldPromptEdit = state.effectiveSettings.enableVersionNaming || state.effectiveSettings.enableVersionDescription;
+                const alreadyNamed = Boolean(action.payload.newVersionEntry.name && action.payload.newVersionEntry.name.trim().length > 0);
+                const shouldPromptEdit = (!alreadyNamed && state.effectiveSettings.enableVersionNaming) || state.effectiveSettings.enableVersionDescription;
                 state.namingVersionId = shouldPromptEdit ? action.payload.newVersionEntry.id : null;
                 state.isManualVersionEdit = false;
             }

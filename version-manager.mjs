@@ -325,7 +325,9 @@ async function main() {
     if (existsSync(stylesPath)) {
       const content = readFileSync(stylesPath, 'utf-8').trim();
       if (content.length > 0) {
-        releaseAssets.push(stylesPath);
+        const rootStylesPath = 'styles.css';
+        prepareReleaseAsset(stylesPath, rootStylesPath);
+        releaseAssets.push(rootStylesPath);
         console.log(`🎨 Including ${stylesPath}`);
       } else {
         console.log(`⚠️ Skipping empty ${stylesPath}`);

@@ -50,13 +50,13 @@ export class DiffComputer {
         if (content1 instanceof ArrayBuffer) {
             masterC1 = content1.slice(0); // Copy to create our persistent master
         } else {
-            masterC1 = this.encoder.encode(content1).buffer.slice(0);
+            const enc1 = this.encoder.encode(content1); masterC1 = enc1.buffer.slice(enc1.byteOffset, enc1.byteOffset + enc1.byteLength);
         }
 
         if (content2 instanceof ArrayBuffer) {
             masterC2 = content2.slice(0); // Copy to create our persistent master
         } else {
-            masterC2 = this.encoder.encode(content2).buffer.slice(0);
+            const enc2 = this.encoder.encode(content2); masterC2 = enc2.buffer.slice(enc2.byteOffset, enc2.byteOffset + enc2.byteLength);
         }
 
         // --- RETRY LOOP ---

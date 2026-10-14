@@ -13,7 +13,7 @@ export function useEntryHighlight(
             if (inputToFocus) {
                 const id = window.setTimeout(() => {
                     try {
-                        inputToFocus.focus();
+                        inputToFocus.focus({ preventScroll: true });
                         if (inputToFocus instanceof HTMLInputElement) {
                             inputToFocus.select();
                         }

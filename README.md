@@ -1,3 +1,18 @@
+> ### v2.0.0 Resurrected & Hardened Local Fork
+> This repository is an actively maintained, security-hardened continuation of **Version Control for Obsidian** (originally created by Yuichi Aragi & Lae Aragi and archived in May 2026).
+>
+> **What is New in v2.0.0 (Maintained by Elijah Dean):**
+> - **100% Local & Air-Gapped (Zero Network Egress):** All external `fetch` requests, remote changelog polling, and third-party tracking badges (`shields.io`) have been permanently removed from the codebase. Your vault contents and metadata never leave your machine.
+> - **Multi-Byte UTF-8 & CJK Integrity Fix (#50):** Fixed Web Worker `ArrayBuffer` byte-offset slicing bugs that caused garbled text (Mojibake) in Chinese/CJK and symbol-heavy notes.
+> - **Legacy & Existing `.vctrl` Edit History Fix (#43 / #44):** Added automatic GZIP/ZLIB header magic-byte detection and fallback decompression so older edit histories load reliably.
+> - **Workspace Tab-Scrolling Fix (#51):** Eliminated focus-scroll hijacking and global CSS root collisions that broke horizontal tab scrolling in Obsidian.
+> - **Instant Version Naming Prompt (#52):** Saving a version via hotkey or Command Palette (even in Zen Mode with the sidebar closed) now prompts you to name your milestone immediately.
+> - **Deleted Note History Retention & Recovery (#49):** Deleting a note in Obsidian no longer wipes its version history. Use the new Command Palette action (**`Version Control: Restore version from deleted / orphaned notes`**) to recover deleted notes and their full snapshot history.
+>
+> *Engineering & Audit Transparency: The static security audit, root-cause bug forensics, air-gap refactoring, and v2.0.0 patch engineering for this fork were executed in collaboration with **Google Gemini 4 Argon**.*
+
+---
+
 ***
 
 <div align="center">

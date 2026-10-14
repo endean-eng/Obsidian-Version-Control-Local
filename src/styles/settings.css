@@ -1,5 +1,5 @@
 /* --v-slider-thumb-size variable used for consistent sizing and to let JS read the size */
-:root {
+.version-control-view, .version-control-settings-tab {
   --v-slider-thumb-size: 18px;
 }
 
@@ -265,7 +265,7 @@
 
 /* Mobile touch friendly */
 @media (hover: none) and (pointer: coarse) {
-    :root {
+    .version-control-view, .version-control-settings-tab {
         --v-slider-thumb-size: 24px;
     }
     .v-slider-container {

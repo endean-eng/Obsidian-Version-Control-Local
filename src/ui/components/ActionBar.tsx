@@ -129,7 +129,7 @@ export const ActionBar: FC = () => {
         event.preventDefault();
         setLocalQuery('');
         dispatch(appSlice.actions.setSearchQuery(''));
-        searchInputRef.current?.focus();
+        searchInputRef.current?.focus({ preventScroll: true });
     }, [dispatch]);
 
     const handleShowSortMenu = useCallback((event: React.MouseEvent) => {
@@ -167,7 +167,7 @@ export const ActionBar: FC = () => {
     useEffect(() => {
         if (isSearchActive) {
             if (document.activeElement !== searchInputRef.current) {
-                const timer = setTimeout(() => searchInputRef.current?.focus(), 100);
+                const timer = setTimeout(() => searchInputRef.current?.focus({ preventScroll: true }), 100);
                 return () => clearTimeout(timer);
             }
         } else {

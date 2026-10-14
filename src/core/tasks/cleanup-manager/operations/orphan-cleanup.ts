@@ -64,9 +64,19 @@ export class OrphanCleanupOperation {
         missingIds = await this.verifyAndRecoverNotes(result, isDestroyed);
     });
 
-    // Step 3: Delete True Orphans (using the IDs identified in Step 2)
+    // Step 3: Retain Deleted Note Histories (#49) - Only delete if manifest is empty/corrupt
     if (missingIds.length > 0) {
-        await runStep('Delete Orphans', () => this.deleteTrueOrphans(missingIds, result, isDestroyed));
+        await runStep('Delete Empty Orphans', async () => {
+            const emptyOrphans: string[] = [];
+            for (const id of missingIds) {
+                const nm = await this.manifestManager.loadNoteManifest(id).catch(() => null);
+                const hasVersions = nm && nm.branches && Object.values(nm.branches).some(b => b && Object.keys(b.versions || {}).length > 0);
+                if (!hasVersions) emptyOrphans.push(id);
+            }
+            if (emptyOrphans.length > 0) {
+                await this.deleteTrueOrphans(emptyOrphans, result, isDestroyed);
+            }
+        });
     }
 
     // Step 4: Physical Folder Cleanup (Unregistered folders)

@@ -44,7 +44,7 @@ export const useNoteActions = () => {
     
     const handleReportIssue = useCallback(() => {
         try {
-            window.open('https://github.com/Yuichi-Aragi/Version-Control/issues', '_blank', 'noopener,noreferrer');
+            window.open('https://github.com/endean-eng/Obsidian-Version-Control-Local/issues', '_blank', 'noopener,noreferrer');
         } catch (error) {
             console.error('Error opening issue tracker:', error);
         }

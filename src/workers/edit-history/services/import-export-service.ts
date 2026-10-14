@@ -76,7 +76,7 @@ export class ImportExportService {
                             'zipSize'
                         ));
                     } else {
-                        resolve(data.buffer as ArrayBuffer);
+                        resolve(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer);
                     }
                 });
             });
@@ -154,7 +154,7 @@ export class ImportExportService {
             const edit: StoredEdit = {
                 ...meta,
                 storageType: meta.storageType || 'full',
-                content: blobData.buffer as ArrayBuffer
+                content: blobData.buffer.slice(blobData.byteOffset, blobData.byteOffset + blobData.byteLength) as ArrayBuffer
             };
 
             if (edit.storageType === 'full' && edit.chainLength > 0) {

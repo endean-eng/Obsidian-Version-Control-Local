@@ -1,5 +1,19 @@
 ***
 
+**Version: 2.0.0 (October 2026) — Local & Hardened Edition**
+
+#### Security & Air-Gap Hardening
+* **100% Local Execution (Zero Network Egress):** Removed all remote `fetch` calls, external `shields.io` badge requests, and remote changelog polling. Vault data and metadata have zero external network pathways.
+
+#### Bug Fixes & Enhancements
+* **Fixed UTF-8 / CJK Garbled Text (#50):** Enforced exact `byteOffset` / `byteLength` slicing across all Web Worker `ArrayBuffer` transfers and `fflate` compression streams.
+* **Fixed Legacy & Existing Edit History Loading (#43 / #44):** Added automatic GZIP/ZLIB header magic-byte detection and synchronous fallback decompression for legacy `.vctrl` archives.
+* **Fixed Tab Scrolling Interference (#51):** Added `{ preventScroll: true }` to all delayed focus hooks and scoped CSS variables.
+* **Prompt for Version Name on Creation (#52):** Added an instant naming modal when saving versions via hotkey/Command Palette.
+* **Protected & Recoverable Deleted Note Histories (#49):** Deleting a note no longer wipes its version history automatically. Added a new Command Palette tool (`Restore version from deleted / orphaned notes`) to browse and recover deleted notes.
+
+***
+
 **Version: 1.9.44 (January 16, 2026)**
 
 #### 🎨 Improvements & UX

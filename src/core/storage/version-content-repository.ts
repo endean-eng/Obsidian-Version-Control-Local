@@ -137,7 +137,7 @@ export class VersionContentRepository {
   private async _readBinaryInternal(noteId: string, versionId: string): Promise<ArrayBuffer | null> {
     const content = await this._readInternal(noteId, versionId);
     if (content === null) return null;
-    return new TextEncoder().encode(content).buffer;
+    const encoded = new TextEncoder().encode(content); return encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength) as ArrayBuffer;
   }
 
   private async _writeInternal(noteId: string, versionId: string, content: string): Promise<{ size: number }> {

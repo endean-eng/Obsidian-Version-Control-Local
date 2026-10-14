@@ -4,7 +4,7 @@ import { VersionControlSettingsSchema, HistorySettingsSchema } from "@/schemas";
 
 export const VIEW_TYPE_VERSION_CONTROL = "version-control-view";
 export const DEFAULT_DB_PATH = ".versiondb";
-export const CHANGELOG_URL = "https://raw.githubusercontent.com/Yuichi-Aragi/Version-Control/main/CHANGELOG.md";
+export const CHANGELOG_URL = "local://changelog";
 export const DEFAULT_BRANCH_NAME = "main";
 
 const DEFAULT_HISTORY_SETTINGS = v.parse(HistorySettingsSchema, {

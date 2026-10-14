@@ -135,7 +135,8 @@ export class EditStorageService {
 
             try {
                 const result = await ReconstructionService.reconstructFromMap(editId, editMap, true);
-                return CompressionService.textEncoder.encode(result.content).buffer as ArrayBuffer;
+                const encoded = CompressionService.textEncoder.encode(result.content);
+                return encoded.buffer.slice(encoded.byteOffset, encoded.byteOffset + encoded.byteLength) as ArrayBuffer;
             } catch (error) {
                 throw new IntegrityError(
                     `Failed to reconstruct edit ${editId}`,

@@ -121,7 +121,7 @@ export class PersistenceService {
             }
         } else {
             // Trust filename timestamp
-            ts = parseInt(match[1], 10);
+            ts = parseInt(match[1] ?? '0', 10);
         }
         
         branchFiles.push({ path: filePath, timestamp: ts, isLegacyName: isLegacy });

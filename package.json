@@ -1,6 +1,6 @@
 {
   "name": "version-control",
-  "version": "1.9.44",
+  "version": "2.0.0",
   "description": "A local, snapshot-based version control system. Lets you create finite number of versions of any note.",
   "main": "main.js",
   "type": "module",
@@ -18,7 +18,7 @@
     "note-taking",
     "productivity"
   ],
-  "author": "Yuichi-Aragi",
+  "author": "Elijah Dean (Originally by Yuichi-Aragi)",
   "license": "MIT",
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

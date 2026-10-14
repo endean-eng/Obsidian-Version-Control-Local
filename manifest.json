@@ -1,9 +1,9 @@
 {
 	"id": "version-control",
 	"name": "Version Control",
-	"version": "1.9.44",
+	"version": "2.0.0",
 	"minAppVersion": "1.10.0",
-	"description": "Create intentional snapshots with meaningful names, in-file branching, side-by-side diffs, timeline search, writing stats, and optional auto-saves.",
-	"author": "Yuichi-Aragi",
+	"description": "Air-gapped, 100% local per-note version control: intentional snapshots, in-file branching, side-by-side diffs, timeline search, and deleted-note recovery.",
+	"author": "Elijah Dean (Originally by Yuichi-Aragi)",
 	"isDesktopOnly": false
 }

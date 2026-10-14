@@ -22,7 +22,6 @@ const SettingsPanelComponent: FC = () => {
     const [rootElement, setRootElement] = useState<HTMLDivElement | null>(null);
     const [isAdvancedMode, setIsAdvancedMode] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     // Manage Obsidian Component lifecycle for window events
     const component = useObsidianComponent();
@@ -39,12 +38,6 @@ const SettingsPanelComponent: FC = () => {
     } = useNoteActions();
 
     useEffect(() => {
-        const handleOnline = () => setIsOnline(true);
-        const handleOffline = () => setIsOnline(false);
-
-        // Use Component to register DOM events for automatic cleanup
-        component.registerDomEvent(window, 'online', handleOnline);
-        component.registerDomEvent(window, 'offline', handleOffline);
 
         // No explicit cleanup return needed as component.unload() handles it
     }, [component]);
@@ -157,13 +150,7 @@ const SettingsPanelComponent: FC = () => {
             >
                 <div className="v-settings-header-title-group">
                     <h3>Settings</h3>
-                    {isOnline && (
-                        <img 
-                            src="https://img.shields.io/github/v/release/Yuichi-Aragi/Version-Control" 
-                            alt="GitHub Release" 
-                            className="v-settings-badge"
-                        />
-                    )}
+                    <span className="v-settings-badge" style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--font-monospace)" }}>v2.0.0 Local</span>
                 </div>
                 <div className="v-panel-header-actions">
                     <button 

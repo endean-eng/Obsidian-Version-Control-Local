@@ -1,4 +1,4 @@
-import { compressSync, decompressSync, strToU8, strFromU8 } from 'fflate';
+import { compressSync, decompressSync, gunzipSync, strToU8, strFromU8 } from 'fflate';
 import { Dexie } from 'dexie';
 import { CONFIG } from '@/workers/edit-history/config';
 import { SecurityError, StateConsistencyError } from '@/workers/edit-history/errors';
@@ -64,7 +64,20 @@ export class CompressionService {
                 throw new SecurityError('Suspicious decompression input size', 'decompressContent', 'high');
             }
 
-            const decompressed = decompressSync(compressed);
+            let decompressed: Uint8Array;
+            if (compressed.length >= 2 && compressed[0] === 0x1f && compressed[1] === 0x8b) {
+                decompressed = gunzipSync(compressed);
+            } else {
+                try {
+                    decompressed = decompressSync(compressed);
+                } catch {
+                    try {
+                        decompressed = gunzipSync(compressed);
+                    } catch {
+                        decompressed = compressed;
+                    }
+                }
+            }
             
             if (decompressed.length > CONFIG.MAX_CONTENT_SIZE) {
                 throw new SecurityError(

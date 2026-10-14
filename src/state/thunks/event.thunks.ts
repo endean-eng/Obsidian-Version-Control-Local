@@ -193,9 +193,9 @@ export const handleFileDelete = (file: TAbstractFile): AppThunk => async (dispat
     if (deletedCount > 0) {
         // Show Notice
         if (deletedCount === 1) {
-            uiService.showNotice(`Version control data deleted for "${file.name}".`);
+            uiService.showNotice("Note deleted. Version history retained (use Command Palette to restore).", 5000);
         } else {
-            uiService.showNotice(`Version control data deleted for ${deletedCount} notes in "${file.name}".`);
+            uiService.showNotice("Notes deleted. Version histories retained in database.", 5000);
         }
         
         // Clear active note if it was deleted or inside deleted folder

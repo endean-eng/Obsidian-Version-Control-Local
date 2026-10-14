@@ -479,7 +479,7 @@ const diffEngine = {
     // 5. Serialize and Transfer
     const json = JSON.stringify(lineChanges);
     const uint8Array = toUint8Array(json);
-    const buffer = uint8Array.buffer.slice(0) as ArrayBuffer;
+    const buffer = uint8Array.buffer.slice(uint8Array.byteOffset, uint8Array.byteOffset + uint8Array.byteLength) as ArrayBuffer;
 
     return transfer(buffer, [buffer]);
   },

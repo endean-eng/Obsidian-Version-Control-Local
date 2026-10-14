@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'url';
 import esbuild from "esbuild";
 import process from "process";
 import fs from "fs";
@@ -6,7 +7,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Plugin to resolve @/ path alias to src/
 const aliasPlugin = {
@@ -212,9 +213,10 @@ async function createBuildOptions() {
 // Function to run tsc --noEmit and log errors without halting build
 async function typeCheck() {
   try {
-    const { stdout, stderr } = await execAsync("npx tsc --noEmit --skipLibCheck true");
+    const { stdout, stderr } = await execAsync("npx --no- warn tsc --noEmit --skipLibCheck true");
     
-    if (stdout.trim() || stderr.trim()) {
+    const cleanStderr = stderr.split(/\r?\n/).filter(l => !l.startsWith("npm warn")).join("\n").trim();
+    if (stdout.trim() || cleanStderr) {
       console.error("TypeScript type errors detected:");
       if (stdout.trim()) console.error(stdout);
       if (stderr.trim()) console.error(stderr);

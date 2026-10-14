@@ -18,7 +18,7 @@ export const useDelayedFocus = <T extends HTMLElement>(
         
         const timer = setTimeout(() => {
             try {
-                elementRef.current?.focus();
+                elementRef.current?.focus({ preventScroll: true });
                 // If it's an input element, select its content
                 if (elementRef.current instanceof HTMLInputElement) {
                     elementRef.current.select();
