@@ -335,9 +335,10 @@ export const appSlice = createSlice({
                     state.lastNoteId = action.payload.newNoteId;
                     state.status = AppStatus.READY;
                 }
-                const alreadyNamed = Boolean(action.payload.newVersionEntry.name && action.payload.newVersionEntry.name.trim().length > 0);
-                const shouldPromptEdit = (!alreadyNamed && state.effectiveSettings.enableVersionNaming) || state.effectiveSettings.enableVersionDescription;
-                state.namingVersionId = shouldPromptEdit ? action.payload.newVersionEntry.id : null;
+                const entry = action.payload.newVersionEntry;
+                const alreadyNamed = Boolean((entry.name && entry.name.trim().length > 0) || (entry.description && entry.description.trim().length > 0) || state.settings.enableAiGeneration);
+                const shouldPromptEdit = !alreadyNamed && (state.effectiveSettings.enableVersionNaming || state.effectiveSettings.enableVersionDescription);
+                state.namingVersionId = shouldPromptEdit ? entry.id : null;
                 state.isManualVersionEdit = false;
             }
         });

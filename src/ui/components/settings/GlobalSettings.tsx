@@ -1,3 +1,6 @@
+import { useState, useContext } from 'react';
+import { AppContext } from '@/ui/AppContext';
+import { AiGenerationService, type AiProviderType } from '@/services/ai-generation-service';
 import { memo, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { valibotResolver } from '@hookform/resolvers/valibot';
@@ -151,6 +154,120 @@ const CompressionSetting: React.FC = memo(() => {
 });
 CompressionSetting.displayName = 'CompressionSetting';
 
+// --- Opt-In AI Diff Summary Settings ---
+const AiGenerationSettings: React.FC = memo(() => {
+    const dispatch = useAppDispatch();
+    const app = useContext(AppContext);
+    const enableAiGeneration = useAppSelector(state => state.app.settings.enableAiGeneration ?? false);
+    const aiProvider = useAppSelector(state => state.app.settings.aiProvider ?? 'gemini');
+    const aiModel = useAppSelector(state => state.app.settings.aiModel ?? 'gemini-3.5-flash-lite');
+    const aiCustomEndpoint = useAppSelector(state => state.app.settings.aiCustomEndpoint ?? '');
+    const autoGenerateAiOnSave = useAppSelector(state => state.app.settings.autoGenerateAiOnSave ?? true);
+
+    const [apiKeyInput, setApiKeyInput] = useState(() => AiGenerationService.getApiKey(app));
+    const [modelInput, setModelInput] = useState(aiModel);
+    const [endpointInput, setEndpointInput] = useState(aiCustomEndpoint);
+    const [savedFeedback, setSavedFeedback] = useState(false);
+
+    useEffect(() => { setModelInput(aiModel); }, [aiModel]);
+    useEffect(() => { setEndpointInput(aiCustomEndpoint); }, [aiCustomEndpoint]);
+
+    const handleSaveConfig = () => {
+        AiGenerationService.setApiKey(app, apiKeyInput);
+        dispatch(thunks.updateGlobalSettings({
+            aiModel: modelInput.trim() || 'gemini-3.5-flash-lite',
+            aiCustomEndpoint: endpointInput.trim()
+        }));
+        setSavedFeedback(true);
+        setTimeout(() => setSavedFeedback(false), 2000);
+    };
+
+    return (
+        <>
+            <SettingComponent
+                name="Enable AI diff titles & descriptions (Opt-in)"
+                desc="Default OFF (100% air-gapped). When enabled, version titles and Markdown descriptions can be generated from your note diffs."
+            >
+                <input
+                    type="checkbox"
+                    checked={enableAiGeneration}
+                    onChange={(e) => dispatch(thunks.updateGlobalSettings({ enableAiGeneration: e.target.checked }))}
+                    aria-label="Toggle AI version generation"
+                />
+            </SettingComponent>
+            {enableAiGeneration && (
+                <>
+                    <SettingComponent
+                        name="Auto-generate when Save Version modal opens"
+                        desc="Automatically request a title and Markdown diff summary when clicking + or running Save Version. Never overwrites fields once you begin typing."
+                    >
+                        <input
+                            type="checkbox"
+                            checked={autoGenerateAiOnSave}
+                            onChange={(e) => dispatch(thunks.updateGlobalSettings({ autoGenerateAiOnSave: e.target.checked }))}
+                            aria-label="Toggle auto-generate on save"
+                        />
+                    </SettingComponent>
+                    <SettingComponent
+                        name="AI Provider"
+                        desc="Select Google Gemini (x-goog-api-key header) or any OpenAI-compatible / Local Ollama endpoint."
+                    >
+                        <select
+                            className="dropdown"
+                            value={aiProvider}
+                            onChange={(e) => dispatch(thunks.updateGlobalSettings({ aiProvider: e.target.value as AiProviderType }))}
+                        >
+                            <option value="gemini">Google Gemini API</option>
+                            <option value="openai-compatible">OpenAI-Compatible / Local Ollama</option>
+                        </select>
+                    </SettingComponent>
+                    <SettingComponent
+                        name="API Key (OS Keychain / SecretStorage Isolated)"
+                        desc="Stored strictly in Obsidian SecretStorage / OS DPAPI Keychain on this machine. Never saved to data.json or vault files."
+                    >
+                        <input
+                            type="password"
+                            value={apiKeyInput}
+                            onChange={(e) => setApiKeyInput(e.target.value)}
+                            placeholder={aiProvider === 'gemini' ? 'AIzaSy...' : 'sk-... (or blank for localhost Ollama)'}
+                        />
+                    </SettingComponent>
+                    <SettingComponent
+                        name="Model ID"
+                        desc="e.g., gemini-3.5-flash-lite, gemini-2.5-flash, gemini-4-argon, or local Ollama model name"
+                    >
+                        <input
+                            type="text"
+                            value={modelInput}
+                            onChange={(e) => setModelInput(e.target.value)}
+                            placeholder="gemini-3.5-flash-lite"
+                        />
+                    </SettingComponent>
+                    <SettingComponent
+                        name="Custom Endpoint URL (Optional)"
+                        desc="Leave blank for default Gemini/OpenAI endpoint, or set e.g. http://localhost:11434/v1/chat/completions for 100% offline local Ollama."
+                    >
+                        <div className="v-setting-form">
+                            <input
+                                type="text"
+                                value={endpointInput}
+                                onChange={(e) => setEndpointInput(e.target.value)}
+                                placeholder="Optional custom endpoint URL"
+                            />
+                            <div className="v-settings-action-row">
+                                <button type="button" className="mod-cta" onClick={handleSaveConfig}>
+                                    {savedFeedback ? 'Saved to Keychain!' : 'Save AI Configuration'}
+                                </button>
+                            </div>
+                        </div>
+                    </SettingComponent>
+                </>
+            )}
+        </>
+    );
+});
+AiGenerationSettings.displayName = 'AiGenerationSettings';
+
 // --- ID Format Settings ---
 
 const IdFormatFormSchema = v.object({
@@ -251,6 +368,7 @@ export const GlobalSettings: React.FC<GlobalSettingsProps> = memo(({
                     <DatabasePathSetting />
                     <FrontmatterKeySetting />
                     <CompressionSetting />
+                    <AiGenerationSettings />
                     <IdFormatSettings />
                 </>
             )}

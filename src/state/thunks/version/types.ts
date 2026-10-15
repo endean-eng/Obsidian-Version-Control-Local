@@ -12,6 +12,7 @@ export interface SaveVersionOptions {
      * Optional name for the version.
      */
     name?: string;
+    description?: string;
 
     /**
      * Whether to force save even if content hasn't changed (e.g. for initial version).

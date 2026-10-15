@@ -1,3 +1,4 @@
+import { AiGenerationService } from '@/services/ai-generation-service';
 import type { App, TFile } from 'obsidian';
 import type { ManifestManager, NoteManager, VersionContentRepository, PluginEvents } from '@/core';
 import type { SaveVersionOptions, SaveVersionResult } from '@/core/version-manager/types';
@@ -29,7 +30,7 @@ export class SaveOperation {
   async execute(file: TFile, options: SaveVersionOptions): Promise<SaveVersionResult> {
     VersionValidator.validateFile(file);
 
-    const { force = false, isAuto = false, settings, name } = options;
+    const { force = false, isAuto = false, settings, name, description } = options;
 
     const noteId = await this.noteManager.getOrCreateNoteId(file);
     if (!noteId) {
@@ -77,6 +78,7 @@ export class SaveOperation {
             const nextVersionNumber = MetadataBuilder.calculateNextVersionNumber(existingVersionNumbers);
 
             const version_name = (name || '').trim();
+            const version_desc = (description || '').trim();
             const versionId = generateVersionId(settings, nextVersionNumber, version_name);
 
             try {
@@ -97,7 +99,8 @@ export class SaveOperation {
                     timestamp,
                     size,
                     textStats,
-                    version_name || undefined
+                    version_name || undefined,
+                    version_desc || undefined
                   );
 
                   branch.versions[versionId] = metadata;
@@ -112,6 +115,31 @@ export class SaveOperation {
               }
 
               const displayName = MetadataBuilder.generateDisplayName(savedVersionData.versionNumber, version_name || undefined);
+              try {
+                const dbRoot = settings.databasePath || '.versiondb';
+                const historyMdPath = dbRoot + '/' + noteId + '/HISTORY.md';
+                const mdEntry = AiGenerationService.formatMarkdownHistoryEntry({
+                  versionId,
+                  versionNumber: savedVersionData.versionNumber,
+                  branchName,
+                  timestamp,
+                  name: version_name || undefined,
+                  description: version_desc || undefined,
+                  oldContent: latestContent,
+                  newContent: contentToSave,
+                });
+                let existingLog = '';
+                if (await this.app.vault.adapter.exists(historyMdPath)) {
+                  existingLog = await this.app.vault.adapter.read(historyMdPath);
+                }
+                const header = '# Version Control History: ' + file.path + '\n\n';
+                const bodyWithoutHeader = existingLog.startsWith('# Version Control History:')
+                  ? existingLog.slice(existingLog.indexOf('\n\n') + 2)
+                  : existingLog;
+                await this.app.vault.adapter.write(historyMdPath, header + mdEntry + bodyWithoutHeader);
+              } catch (logErr) {
+                console.warn('VC: Failed to update plain-text HISTORY.md log', logErr);
+              }
               this.eventBus.trigger('version-saved', noteId);
 
               return {
@@ -125,6 +153,7 @@ export class SaveOperation {
                   timestamp,
                   size,
                   ...(version_name && { name: version_name }),
+                  ...(version_desc && { description: version_desc }),
                   wordCount: savedVersionData.wordCount,
                   wordCountWithMd: savedVersionData.wordCountWithMd,
                   charCount: savedVersionData.charCount,

@@ -23,7 +23,12 @@ export const DEFAULT_SETTINGS: VersionControlSettings = v.parse(VersionControlSe
   defaultExportFormat: 'md',
   autoRegisterNotes: false, // Deprecated/Fallback
   pathFilters: [], // Deprecated/Fallback
-  enableCompression: true,
+  enableCompression: false,
+  enableAiGeneration: false,
+  aiProvider: 'gemini',
+  aiModel: 'gemini-3.5-flash-lite',
+  aiCustomEndpoint: '',
+  autoGenerateAiOnSave: true,
   centralManifest: {
     version: "1.0.0",
     notes: {},
