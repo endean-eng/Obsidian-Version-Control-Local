@@ -1,4 +1,5 @@
 import { useState, useContext } from 'react';
+import type { App } from 'obsidian';
 import { AppContext } from '@/ui/AppContext';
 import { AiGenerationService, type AiProviderType } from '@/services/ai-generation-service';
 import { memo, useEffect } from 'react';
@@ -164,7 +165,7 @@ const AiGenerationSettings: React.FC = memo(() => {
     const aiCustomEndpoint = useAppSelector(state => state.app.settings.aiCustomEndpoint ?? '');
     const autoGenerateAiOnSave = useAppSelector(state => state.app.settings.autoGenerateAiOnSave ?? true);
 
-    const [apiKeyInput, setApiKeyInput] = useState(() => AiGenerationService.getApiKey(app));
+    const [apiKeyInput, setApiKeyInput] = useState(() => AiGenerationService.getApiKey(app as unknown as App));
     const [modelInput, setModelInput] = useState(aiModel);
     const [endpointInput, setEndpointInput] = useState(aiCustomEndpoint);
     const [savedFeedback, setSavedFeedback] = useState(false);
@@ -173,7 +174,7 @@ const AiGenerationSettings: React.FC = memo(() => {
     useEffect(() => { setEndpointInput(aiCustomEndpoint); }, [aiCustomEndpoint]);
 
     const handleSaveConfig = () => {
-        AiGenerationService.setApiKey(app, apiKeyInput);
+        AiGenerationService.setApiKey(app as unknown as App, apiKeyInput);
         dispatch(thunks.updateGlobalSettings({
             aiModel: modelInput.trim() || 'gemini-3.5-flash-lite',
             aiCustomEndpoint: endpointInput.trim()

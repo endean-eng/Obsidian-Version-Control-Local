@@ -115,12 +115,16 @@ export class AiGenerationService {
         const lineChanges = diffLines(normOld, normNew);
         const hunks: string[] = [];
         let hunkNum = 1;
+        let totalLength = 0;
+        const TRUNCATION_NOTICE = '\n\n[... Diff truncated: Remaining change hunks omitted to fit context window ...]';
 
         for (let i = 0; i < lineChanges.length; i++) {
             const curr = lineChanges[i]!;
             if (!curr.added && !curr.removed) continue;
 
+            let hunkStr = '';
             const next = i + 1 < lineChanges.length ? lineChanges[i + 1] : undefined;
+            
             if (curr.removed && next?.added) {
                 // Modified paragraph/line block: compute inline word-level delta
                 const wordDiffs = diffWordsWithSpace(curr.value.trim(), next.value.trim());
@@ -129,16 +133,40 @@ export class AiGenerationService {
                     if (w.added) return '{+' + w.value + '+}';
                     return w.value;
                 }).join('');
-                hunks.push('Change #' + (hunkNum++) + ' (Modified Line/Paragraph):\n' + inlineMarkup);
+                hunkStr = 'Change #' + (hunkNum++) + ' (Modified Line/Paragraph):\n' + inlineMarkup;
                 i++; // Skip the paired added block
             } else if (curr.removed) {
-                hunks.push('Change #' + (hunkNum++) + ' (Deleted Line/Paragraph):\n[-' + curr.value.trim() + '-]');
+                hunkStr = 'Change #' + (hunkNum++) + ' (Deleted Line/Paragraph):\n[-' + curr.value.trim() + '-]';
             } else if (curr.added) {
-                hunks.push('Change #' + (hunkNum++) + ' (Added Line/Paragraph):\n{+' + curr.value.trim() + '+}');
+                hunkStr = 'Change #' + (hunkNum++) + ' (Added Line/Paragraph):\n{+' + curr.value.trim() + '+}';
             }
+
+            const projectedLength = totalLength + (hunks.length > 0 ? 2 : 0) + hunkStr.length;
+            
+            if (projectedLength > MAX_DIFF_CHARS) {
+                if (hunks.length === 0) {
+                    // Single-Hunk Overflow Guard
+                    let sliced = hunkStr.slice(0, MAX_DIFF_CHARS);
+                    // Close dangling markers if any
+                    const openAdded = (sliced.match(/\{\+/g) || []).length;
+                    const closeAdded = (sliced.match(/\+\}/g) || []).length;
+                    if (openAdded > closeAdded) sliced += '+}';
+                    
+                    const openRemoved = (sliced.match(/\[\-/g) || []).length;
+                    const closeRemoved = (sliced.match(/\-\]/g) || []).length;
+                    if (openRemoved > closeRemoved) sliced += '-]';
+                    
+                    hunks.push(sliced);
+                }
+                hunks.push(TRUNCATION_NOTICE.trim());
+                break;
+            }
+            
+            hunks.push(hunkStr);
+            totalLength += (hunks.length > 1 ? 2 : 0) + hunkStr.length;
         }
 
-        return hunks.join('\n\n').slice(0, MAX_DIFF_CHARS);
+        return hunks.join('\n\n');
     }
 
     public static async generateSummary(params: {
@@ -228,7 +256,14 @@ export class AiGenerationService {
         }
 
         const requestedModel = (modelId || 'gemini-3.5-flash-lite').trim().replace(/^models\//, '');
-        const fallbackModels = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+        const fallbackModels = [
+            'gemini-3.5-flash-lite',
+            'gemini-3.1-flash-lite',
+            'gemini-flash-lite-latest',
+            'gemini-3.8-flash',
+            'gemini-flash-latest',
+            'gemini-4-argon',
+        ];
         const candidates = [requestedModel, ...fallbackModels.filter(m => m !== requestedModel)];
         const baseUrl = (customEndpointUrl || 'https://generativelanguage.googleapis.com/v1beta/models').trim().replace(/\/$/, '');
 
@@ -275,12 +310,35 @@ export class AiGenerationService {
     }
 
     private static parseJsonSummary(rawText: string): AiVersionSummary {
-        const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-        const parsed = JSON.parse(cleaned);
-        return {
-            name: typeof parsed.name === 'string' ? parsed.name.trim().slice(0, 120) : 'Updated note',
-            description: typeof parsed.description === 'string' ? parsed.description.trim().slice(0, 2000) : ''
-        };
+        try {
+            const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/\s*```$/, '');
+            try {
+                const parsed = JSON.parse(cleaned);
+                return {
+                    name: typeof parsed.name === 'string' ? parsed.name.trim().slice(0, 120) : 'Updated note',
+                    description: typeof parsed.description === 'string' ? parsed.description.trim().slice(0, 2000) : '- Version updated.'
+                };
+            } catch {
+                // Safe JSON Extraction: find outer {} bounds
+                const firstBrace = cleaned.indexOf('{');
+                const lastBrace = cleaned.lastIndexOf('}');
+                if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                    const extracted = cleaned.substring(firstBrace, lastBrace + 1);
+                    const parsed = JSON.parse(extracted);
+                    return {
+                        name: typeof parsed.name === 'string' ? parsed.name.trim().slice(0, 120) : 'Updated note',
+                        description: typeof parsed.description === 'string' ? parsed.description.trim().slice(0, 2000) : '- Version updated.'
+                    };
+                }
+                throw new Error('No valid JSON object bounds found');
+            }
+        } catch (e) {
+            console.warn('VC: Failed to parse JSON summary from LLM, using fallback.', e);
+            return {
+                name: 'Updated note',
+                description: '- Version updated.'
+            };
+        }
     }
 
     public static formatMarkdownHistoryEntry(params: {

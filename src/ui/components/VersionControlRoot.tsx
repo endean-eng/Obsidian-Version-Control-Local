@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { type FC, useCallback, useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/ui/hooks';
 import { AppStatus, appSlice } from '@/state';
+import type { App } from 'obsidian';
 import { Placeholder } from '@/ui/components';
 import { ErrorDisplay } from './ErrorDisplay';
 import { ActionBar } from './ActionBar';
@@ -84,7 +85,7 @@ export const VersionControlRoot: FC = () => {
         if (viewMode === 'versions') {
             const st = (store.getState() as any).app;
             if (st?.settings?.enableAiGeneration) {
-                new PromptVersionNameModal(app, { app } as any, store as any, ({ name, description }) => {
+                new PromptVersionNameModal(app as unknown as App, { app } as any, store as any, ({ name, description }) => {
                     dispatch(thunks.saveNewVersion({
                         ...(name ? { name } : {}),
                         ...(description ? { description } : {})

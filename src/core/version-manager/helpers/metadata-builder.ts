@@ -31,6 +31,10 @@ export class MetadataBuilder {
     if (name) {
       metadata.name = name;
     }
+    
+    if (description) {
+      metadata.description = description;
+    }
 
     return metadata;
   }
