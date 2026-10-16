@@ -104,6 +104,7 @@ export const saveNewVersion = createAsyncThunk<
                 isAuto,
                 settings: settingsToUse,
                 ...(options.name !== undefined ? { name: options.name } : {}),
+                ...(options.description !== undefined ? { description: options.description } : {}),
                 ...(options.force !== undefined ? { force: options.force } : {}),
             };
 

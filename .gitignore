@@ -14,3 +14,8 @@ build/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Esbuild compiled artifacts
+assets/main.js
+assets/main.css
+assets/styles.css

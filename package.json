@@ -1,6 +1,6 @@
 {
   "name": "version-control",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A local, snapshot-based version control system. Lets you create finite number of versions of any note.",
   "main": "main.js",
   "type": "module",

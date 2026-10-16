@@ -13,7 +13,8 @@ export class MetadataBuilder {
     timestamp: string,
     size: number,
     textStats: TextStats,
-    name?: string
+    name?: string,
+    description?: string
   ): VersionMetadata {
     const metadata: VersionMetadata = {
       versionNumber,
@@ -29,6 +30,10 @@ export class MetadataBuilder {
 
     if (name) {
       metadata.name = name;
+    }
+    
+    if (description) {
+      metadata.description = description;
     }
 
     return metadata;

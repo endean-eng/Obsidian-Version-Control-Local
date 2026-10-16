@@ -1,7 +1,12 @@
+import { useContext } from 'react';
+import { AppContext } from '@/ui/AppContext';
+import { PromptVersionNameModal } from '@/setup/UISetup';
+import { useStore } from 'react-redux';
 import clsx from 'clsx';
 import { type FC, useCallback, useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/ui/hooks';
 import { AppStatus, appSlice } from '@/state';
+import type { App } from 'obsidian';
 import { Placeholder } from '@/ui/components';
 import { ErrorDisplay } from './ErrorDisplay';
 import { ActionBar } from './ActionBar';
@@ -16,6 +21,8 @@ import { useGetEffectiveSettingsQuery, useGetBranchesQuery } from '@/state/apis/
 
 export const VersionControlRoot: FC = () => {
     const dispatch = useAppDispatch();
+    const app = useContext(AppContext);
+    const store = useStore();
     const { status, error, panel, isProcessing, isRenaming, viewMode, noteId, currentBranch } = useAppSelector(state => ({
         status: state.app.status,
         error: state.app.error,
@@ -76,7 +83,17 @@ export const VersionControlRoot: FC = () => {
     const handleSaveClick = useCallback(() => {
         if (status !== AppStatus.READY || isProcessing || isRenaming || isInitializingSettings) return;
         if (viewMode === 'versions') {
-            dispatch(thunks.saveNewVersion({}));
+            const st = (store.getState() as any).app;
+            if (st?.settings?.enableAiGeneration) {
+                new PromptVersionNameModal(app as unknown as App, { app } as any, store as any, ({ name, description }) => {
+                    dispatch(thunks.saveNewVersion({
+                        ...(name ? { name } : {}),
+                        ...(description ? { description } : {})
+                    }));
+                }).open();
+            } else {
+                dispatch(thunks.saveNewVersion({}));
+            }
         } else {
             dispatch(thunks.saveNewEdit());
         }

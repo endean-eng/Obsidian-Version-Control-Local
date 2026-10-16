@@ -6,6 +6,7 @@ import type { VersionControlSettings, VersionHistoryEntry } from '@/types';
  */
 export interface SaveVersionOptions {
   name?: string;
+  description?: string;
   force?: boolean;
   isAuto?: boolean;
   settings: VersionControlSettings;

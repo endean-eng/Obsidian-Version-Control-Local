@@ -10,6 +10,7 @@ import { VersionControlSettingsSchema } from '@/schemas';
 
 export const SaveVersionOptionsSchema = v.object({
     name: v.optional(v.string()),
+    description: v.optional(v.string()),
     force: v.optional(v.boolean()),
     isAuto: v.optional(v.boolean()),
     settings: v.optional(VersionControlSettingsSchema),

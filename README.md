@@ -1,15 +1,19 @@
-> ### v2.0.0 Resurrected & Hardened Local Fork
-> This repository is an actively maintained, security-hardened continuation of **Version Control for Obsidian** (originally created by Yuichi Aragi & Lae Aragi and archived in May 2026).
+> ### v2.0.1 Hardened Local Edition (Live Release)
+> This repository is an actively maintained, security-hardened continuation of **Version Control for Obsidian** (originally created by Yuichi Aragi & Lae Aragi and archived in May 2026), developed and maintained by **Dean Innovative Design** (Elijah Dean).
 >
-> **What is New in v2.0.0 (Maintained by Elijah Dean):**
-> - **100% Local & Air-Gapped (Zero Network Egress):** All external `fetch` requests, remote changelog polling, and third-party tracking badges (`shields.io`) have been permanently removed from the codebase. Your vault contents and metadata never leave your machine.
+> **What is New in v2.0.1:**
+> - **Opt-In AI Milestone Summaries (New in v2.0.1):** Optional AI title and diff generation supporting Google Gemini and 100% offline local endpoints (Ollama / LocalAI at `http://localhost:11434/v1`).
+> - **OS Keychain Credential Isolation (New in v2.0.1):** AI credentials strictly resolve through Obsidian `app.secretStorage` or OS DPAPI keychain—never stored in `data.json` or committed to Git.
+> - **Deprecation-Proof Markdown Audit Log (New in v2.0.1):** Appends clean, human-readable unified diff records directly into `.versiondb/<noteId>/HISTORY.md`.
+> - **Dirty-Lock Latency Protection (New in v2.0.1):** User keystrokes in title or description fields instantly lock them against asynchronous overwrite.
+> - **100% Local & Air-Gapped by Default:** Zero background network requests, zero telemetry, and zero unprompted outbound calls. Third-party tracking badges have been completely eliminated.
 > - **Multi-Byte UTF-8 & CJK Integrity Fix (#50):** Fixed Web Worker `ArrayBuffer` byte-offset slicing bugs that caused garbled text (Mojibake) in Chinese/CJK and symbol-heavy notes.
-> - **Legacy & Existing `.vctrl` Edit History Fix (#43 / #44):** Added automatic GZIP/ZLIB header magic-byte detection and fallback decompression so older edit histories load reliably.
+> - **Legacy `.vctrl` Edit History Fix (#43 / #44):** Added automatic GZIP/ZLIB header magic-byte detection and fallback decompression so older edit histories load reliably.
 > - **Workspace Tab-Scrolling Fix (#51):** Eliminated focus-scroll hijacking and global CSS root collisions that broke horizontal tab scrolling in Obsidian.
-> - **Instant Version Naming Prompt (#52):** Saving a version via hotkey or Command Palette (even in Zen Mode with the sidebar closed) now prompts you to name your milestone immediately.
-> - **Deleted Note History Retention & Recovery (#49):** Deleting a note in Obsidian no longer wipes its version history. Use the new Command Palette action (**`Version Control: Restore version from deleted / orphaned notes`**) to recover deleted notes and their full snapshot history.
+> - **Instant Version Naming Prompt (#52):** Saving a version via hotkey or Command Palette prompts you to name your milestone immediately.
+> - **Deleted Note History Retention & Recovery (#49):** Deleting a note in Obsidian retains full version history. Use **`Version Control: Restore version from deleted / orphaned notes`** to recover deleted notes and snapshots.
 >
-> *Engineering & Audit Transparency: The static security audit, root-cause bug forensics, air-gap refactoring, and v2.0.0 patch engineering for this fork were executed in collaboration with **Google Gemini 4 Argon**.*
+> *Engineering & Audit Transparency: Static security audits, air-gap refactoring, and patch engineering for this fork are developed by Dean Innovative Design in collaboration with Google Gemini 4 Argon.*
 
 ---
 
@@ -17,12 +21,11 @@
 
 <div align="center">
 
-![Banner](https://github.com/Lae-Aragi/Version-Control/blob/7fa9fdea45c5ab373cec5997aa990ef013070b75/assets/1000202057.jpg)
+![Banner](assets/1000202057.jpg)
+
+**Version 2.0.1** • *Maintained by Dean Innovative Design* • **MIT Licensed**
 
 </div>
-
-![GitHub Release](https://img.shields.io/github/v/release/Yuichi-Aragi/Version-Control) [![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22version-control%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json)](https://obsidian.md/plugins?id=version-control) ![GitHub stars](https://img.shields.io/github/stars/Yuichi-Aragi/Version-Control) ![GitHub open issues](https://img.shields.io/github/issues/Yuichi-Aragi/Version-Control) ![GitHub closed issues](https://img.shields.io/github/issues-closed/Yuichi-Aragi/Version-Control) ![GitHub last commit](https://img.shields.io/github/last-commit/Yuichi-Aragi/Version-Control) 
-![Status](https://img.shields.io/badge/status-abandoned-red)
 
 ***
 
@@ -86,6 +89,22 @@ As of now, this plugin provides version control for:
 ### 💾 **Save Intentional Snapshots**
 Create meaningful version milestones with custom names and descriptions. Save "First complete thought," "After research," "Final before rewrite" – exactly when YOU decide it's worth preserving.
 
+### 🤖 **Opt-In AI Milestone Summaries (New in v2.0.1)**
+Automatic generation of concise titles and bulleted change descriptions based on unified note diffs.
+- **100% Air-Gapped & Local Support**: Defaults to OFF. Works seamlessly with local Ollama / LocalAI (`http://localhost:11434/v1`) or cloud Google Gemini.
+- **OS Keychain Isolation**: API keys are heavily isolated via Obsidian `app.secretStorage` or OS DPAPI keychain—never stored in plaintext `data.json`.
+- **Dirty-Lock Keystroke Protection**: Your manual keystrokes immediately lock the input fields to prevent AI overwrites while you type.
+- **Resilient Diffing**: Word-level diffing with single-hunk overflow guard respects context windows while providing high-quality summaries.
+
+### 📜 **Deprecation-Proof Markdown Audit Log (`HISTORY.md`)**
+Every intentional snapshot automatically logs a clean, human-readable unified diff and description directly to `.versiondb/<noteId>/HISTORY.md`. This transparent audit log can be read in plain text, standard Markdown viewers, and git—meaning your history remains accessible even without Obsidian or the plugin.
+
+### 🛡️ **Deleted Note History Retention & Recovery**
+Deleting a note in Obsidian no longer purges its history. A dedicated Command Palette workflow (`Version Control: Restore version from deleted / orphaned notes`) allows you to easily recover deleted notes and safely restore their entire version timeline.
+
+### ⚡ **Instant Naming Modal Prompt**
+Saving versions triggered via hotkey or the Command Palette opens a modal prompt immediately, making milestone titling fast and seamless without needing to navigate the sidebar.
+
 ### 🔍 **Advanced Comparison (Diff) Engine**
 See exactly what changed between any two versions with multiple comparison modes.
 - **Side-by-Side View**: Compare versions left and right (like standard developer tools).
@@ -125,8 +144,8 @@ Want to keep your history forever without bloating your hard drive?
 - **Compression**: Enable optional GZIP compression. Versions are compressed before saving to disk. (They remain accessible—just change the extension to `.gz` and open the archive).
 - **Sync-Friendly**: Edit history is stored as compressed diffs in `.vctrl` files, making them efficient to sync across devices.
 
-### 📢 **Automatic Changelog**
-Stay in the loop without checking the repo. The plugin features an automatic changelog view that appears on new updates, detailing exactly what has improved.
+### 📢 **Automatic Changelog (100% Air-Gapped)**
+Stay in the loop without checking the repo. The plugin features an automatic changelog view that appears on new updates, detailing exactly what has improved. **This changelog is bundled locally—meaning zero outbound network polling or remote tracking.**
 
 ---
 
@@ -140,16 +159,16 @@ The plugin is designed to be intuitive and fit seamlessly with your Obsidian the
     <td align="center"><strong>Card View (Dark)</strong></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/Yuichi-Aragi/Version-Control/blob/241b206566ab43253b7e45b0ad7d31cc52c399af/assets/20251111_001800.jpg" alt="Card View in Light Mode"></td>
-    <td><img src="https://github.com/Yuichi-Aragi/Version-Control/blob/241b206566ab43253b7e45b0ad7d31cc52c399af/assets/20251111_001358.jpg" alt="Card View in Dark Mode"></td>
+    <td><img src="assets/20251111_001800.jpg" alt="Card View in Light Mode"></td>
+    <td><img src="assets/20251111_001358.jpg" alt="Card View in Dark Mode"></td>
   </tr>
   <tr>
     <td align="center"><strong>List View (Light)</strong></td>
     <td align="center"><strong>List View (Dark)</strong></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/Yuichi-Aragi/Version-Control/blob/241b206566ab43253b7e45b0ad7d31cc52c399af/assets/20251111_001725.jpg" alt="List View in Light Mode"></td>
-    <td><img src="https://github.com/Yuichi-Aragi/Version-Control/blob/241b206566ab43253b7e45b0ad7d31cc52c399af/assets/20251111_001603.jpg" alt="List View in Dark Mode"></td>
+    <td><img src="assets/20251111_001725.jpg" alt="List View in Light Mode"></td>
+    <td><img src="assets/20251111_001603.jpg" alt="List View in Dark Mode"></td>
   </tr>
 </table>
 
@@ -208,7 +227,7 @@ For immediate use:
 
 ## Platform Support
 
-* ✅ **Mobile** (iOS & Android)
+* ⚠️ **Mobile** (iOS & Android) - *Compatibility may still be inconsistent*
 * ✅ **Desktop** (Windows, macOS, Linux)
 
 ---
@@ -223,23 +242,49 @@ If you find that our vision doesn't perfectly align with yours, or if you want t
 
 ## 🛠️ Maintenance and Contribution 
 
-This project is a passion project maintained by **Yuichi Aragi** and **Lae Aragi**. To keep our relationship with this community healthy and transparent, we want to be clear about how we view this work:
+This repository is maintained and governed by **Dean Innovative Design** (Elijah Dean) as a privacy-centric, 100% air-gapped fork of the original Version Control plugin.
 
-*   **Why we are here:** I built this because I wanted it to exist, and I manage it because I want to. I am here because I want to be, not because I have to be.
-*   **The "Ride":** Software is ephemeral. Don't build your life around this plugin; rather than striving for obsessive future-proofing, enjoy the ride while it lasts.
-*   **Status Updates:** If I decide to abandon this project someday, you will know it immediately by looking at the **status badge** at the top of this README.
-*   **What "Abandoned" means:** Flipping the badge to "abandoned" isn't necessarily a sign of "I will never manage this plugin again." It simply means that, for the time being, you shouldn't expect support or updates. However, don't get your hopes high for a return.
-*   **Contributions:** We are **not** accepting code contributions or Pull Requests. We want to maintain a specific vision and code standard.
-*   **Feedback:** If you have Feature Requests, Issues, or Suggestions, please **tell us**. Open an issue on GitHub, and if it aligns with our vision, we will handle the implementation.
+*   **Active Maintenance:** This project is actively developed and tested for daily production use. Check `ROADMAP.md` for upcoming enhancements and planned features.
+*   **Security First:** The core philosophy remains absolute privacy. Zero telemetry, zero unprompted network calls. Any new network features (like LLM summary generation) are strictly opt-in and configurable to hit local offline endpoints.
+*   **Contributions:** We welcome bug fixes, usability enhancements, and security audits! Please open an Issue on the `endean-eng/Obsidian-Version-Control-Local` GitHub repository to discuss major architectural changes before submitting a Pull Request, so we can ensure alignment with the air-gap philosophy.
+*   **Feedback:** Feature Requests, Issues, and Suggestions are actively monitored via GitHub Issues.
 
 ---
 
-## Download
+## 🦙 Local Ollama Configuration Guide
 
-To jump straight to the Version Control plugin in Obsidian, try this:
+To use the **Opt-In AI Milestone Summaries** completely offline and air-gapped, follow these steps:
 
-* **​Click the URI:** Copy and paste or click this [link](obsidian://show-plugin?id=version-control), which should launch the app: obsidian://show-plugin?id=version-control
-* **Alternatively (Search):** If the link doesn't work, go to your Obsidian Settings and search for 'Version-Control' in the Community Plugins list.
+1. **Install Ollama**: Download and install [Ollama](https://ollama.com/) on your machine.
+2. **Download a Model**: Open your terminal and pull a fast, lightweight model (e.g., `ollama run qwen2.5:0.5b` or `ollama run llama3.2`).
+3. **Configure the Plugin**: 
+   - Go to Version Control Settings ⚙️
+   - Enable "AI diff titles & descriptions"
+   - Select **OpenAI-Compatible / Local Ollama** from the AI Provider dropdown.
+   - Leave the **API Key** blank.
+   - Enter your model name in **Model ID** (e.g., `qwen2.5:0.5b`).
+   - Enter `http://localhost:11434/v1/chat/completions` in the **Custom Endpoint URL**.
+   - Click **Save AI Configuration**.
+
+Now, whenever you save an intentional snapshot, the plugin will securely query your local Ollama instance without any network egress.
+
+---
+
+## 📥 Download & Installation
+
+To install the locally-hardened version of the Version Control plugin:
+
+### Option 1: Stable Release (v2.0.1+)
+1. Go to the [Releases page](https://github.com/endean-eng/Obsidian-Version-Control-Local/releases) on GitHub.
+2. Download `main.js`, `styles.css`, and `manifest.json` from the latest release.
+3. Create a folder named `version-control` inside your vault's `.obsidian/plugins/` directory and place the files there.
+4. Reload Obsidian and enable the plugin.
+
+### Option 2: Community Beta Testing (via BRAT)
+To test cutting-edge beta releases directly inside Obsidian:
+1. Install the **Obsidian42 - BRAT** community plugin.
+2. Add the beta repository URL: `endean-eng/Obsidian-Version-Control-Local`
+3. BRAT will automatically fetch and keep the plugin updated with the latest beta tags.
 
 ---
 

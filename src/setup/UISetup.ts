@@ -5,45 +5,117 @@ import { VIEW_TYPE_VERSION_CONTROL } from '@/constants';
 import { VersionControlView } from '@/ui/version-control-view';
 import { ServiceRegistry } from '@/services-registry';
 import { generateUniqueFilePath } from '@/utils/file';
+import { AiGenerationService } from '@/services/ai-generation-service';
+
+export interface VersionPromptResult {
+    name: string;
+    description: string;
+}
 
 export class PromptVersionNameModal extends Modal {
     private versionName = '';
+    private versionDesc = '';
+    private isNameDirty = false;
+    private isDescDirty = false;
+    private isModalClosed = false;
+    private isGenerating = false;
+    private nameInputEl: HTMLInputElement | null = null;
+    private descInputEl: HTMLTextAreaElement | null = null;
+    private aiBtnEl: HTMLButtonElement | null = null;
+    private statusEl: HTMLElement | null = null;
 
-    constructor(app: App, private onSubmit: (name: string) => void) {
+    constructor(
+        app: App,
+        private plugin: Plugin,
+        private store: AppStore,
+        private onSubmit: (result: VersionPromptResult) => void
+    ) {
         super(app);
     }
 
     override onOpen(): void {
         const { contentEl } = this;
         contentEl.empty();
+        this.isModalClosed = false;
         contentEl.createEl('h3', { text: 'Save new version' });
+
+        const state = this.store.getState().app;
+        const aiEnabled = Boolean(state.settings?.enableAiGeneration);
+        const autoAi = Boolean(state.settings?.autoGenerateAiOnSave ?? true);
+        const aiProvider = state.settings?.aiProvider || 'gemini';
+        const aiModel = state.settings?.aiModel || 'gemini-3.5-flash-lite';
+        const aiCustomEndpoint = state.settings?.aiCustomEndpoint || '';
 
         new Setting(contentEl)
             .setName('Version name')
-            .setDesc('Enter an optional milestone name (press Enter to save)')
+            .setDesc('Milestone title (press Enter to save; typing locks field from AI overwrite)')
             .addText((text) => {
-                text.setPlaceholder('e.g., First complete draft');
-                text.onChange((val) => {
-                    this.versionName = val;
+                this.nameInputEl = text.inputEl;
+                text.setPlaceholder('e.g., Added nozzle pressure drop equations');
+                text.inputEl.style.width = '100%';
+                text.inputEl.addEventListener('input', () => {
+                    this.isNameDirty = true;
+                    this.versionName = text.inputEl.value;
                 });
                 text.inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        this.close();
-                        this.onSubmit(this.versionName.trim());
+                        this.submitAndClose();
+                    } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                        this.isNameDirty = true;
                     }
                 });
                 setTimeout(() => text.inputEl.focus({ preventScroll: true }), 30);
             });
 
-        new Setting(contentEl)
+        const descSetting = new Setting(contentEl)
+            .setName('Description (Markdown)')
+            .setDesc('Bulleted diff summary (Ctrl+Enter to save; typing locks field from AI overwrite)');
+
+        const descArea = descSetting.controlEl.createEl('textarea', {
+            attr: { rows: '5', placeholder: '- Summary of changes...' }
+        });
+        descArea.style.width = '100%';
+        descArea.style.minWidth = '280px';
+        descArea.style.fontFamily = 'var(--font-monospace)';
+        descArea.style.fontSize = 'var(--font-ui-smaller)';
+        descArea.addEventListener('input', () => {
+            this.isDescDirty = true;
+            this.versionDesc = descArea.value;
+        });
+        descArea.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                this.submitAndClose();
+            } else if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+                this.isDescDirty = true;
+            }
+        });
+        this.descInputEl = descArea;
+
+        this.statusEl = contentEl.createEl('div', {
+            attr: { style: 'font-size: var(--font-ui-smaller); color: var(--text-muted); margin: 4px 0 8px;' }
+        });
+
+        const btnSetting = new Setting(contentEl);
+
+        if (aiEnabled) {
+            btnSetting.addButton((btn) => {
+                this.aiBtnEl = btn.buttonEl;
+                btn.setButtonText('Generate with AI (' + aiModel + ')')
+                    .onClick(() => {
+                        void this.runAiGeneration(aiProvider, aiModel, aiCustomEndpoint, true);
+                    });
+            });
+        }
+
+        btnSetting
             .addButton((btn) =>
                 btn
                     .setButtonText('Save version')
                     .setCta()
                     .onClick(() => {
-                        this.close();
-                        this.onSubmit(this.versionName.trim());
+                        this.submitAndClose();
                     })
             )
             .addButton((btn) =>
@@ -53,13 +125,133 @@ export class PromptVersionNameModal extends Modal {
                         this.close();
                     })
             );
+
+        const hasKeyOrLocal = Boolean(AiGenerationService.getApiKey(this.app) || /^https?:\/\/(localhost|127\.0\.0\.1)/i.test(aiCustomEndpoint));
+        if (aiEnabled && autoAi && hasKeyOrLocal) {
+            void this.runAiGeneration(aiProvider, aiModel, aiCustomEndpoint, false);
+        }
+    }
+
+    private async runAiGeneration(
+        provider: 'gemini' | 'openai-compatible',
+        modelId: string,
+        customEndpointUrl: string,
+        isManualClick: boolean
+    ): Promise<void> {
+        if (this.isGenerating || this.isModalClosed) return;
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) return;
+
+        this.isGenerating = true;
+        if (this.aiBtnEl) {
+            this.aiBtnEl.disabled = true;
+            this.aiBtnEl.textContent = 'Generating diff summary...';
+        }
+        if (this.statusEl) {
+            this.statusEl.textContent = 'Analyzing diff with ' + modelId + '...';
+        }
+
+        try {
+            const services = ServiceRegistry.getInstance(this.plugin as any);
+            const currentContent = await AiGenerationService.readLiveOrDiskContent(this.app, activeFile.path);
+            const noteId = await services.noteManager.getNoteId(activeFile);
+            let latestContent: string | null = null;
+            if (noteId) {
+                const manifest = await services.manifestManager.loadNoteManifest(noteId);
+                if (manifest) {
+                    latestContent = await services.versionContentRepo.getLatestVersionContent(noteId, manifest);
+                }
+            }
+
+            const summary = await AiGenerationService.generateSummary({
+                app: this.app,
+                noteTitle: activeFile.basename,
+                oldContent: latestContent,
+                newContent: currentContent,
+                provider,
+                modelId,
+                customEndpointUrl
+            });
+
+            if (this.isModalClosed) return;
+
+            let skippedFields: string[] = [];
+
+            const canFillName = !this.isNameDirty || (isManualClick && this.versionName.trim().length === 0);
+            if (canFillName && this.nameInputEl) {
+                this.versionName = summary.name;
+                this.nameInputEl.value = summary.name;
+                if (!this.isDescDirty) {
+                    this.nameInputEl.focus({ preventScroll: true });
+                    this.nameInputEl.select();
+                }
+            } else {
+                skippedFields.push('title');
+            }
+
+            const canFillDesc = !this.isDescDirty || (isManualClick && this.versionDesc.trim().length === 0);
+            if (canFillDesc && this.descInputEl) {
+                this.versionDesc = summary.description;
+                this.descInputEl.value = summary.description;
+            } else {
+                skippedFields.push('description');
+            }
+
+            if (this.statusEl) {
+                if (skippedFields.length > 0) {
+                    this.statusEl.textContent = 'AI summary ready (preserved your manual input in ' + skippedFields.join(' & ') + ').';
+                } else {
+                    this.statusEl.textContent = 'AI diff summary populated. Press Enter to confirm.';
+                }
+            }
+        } catch (err) {
+            if (!this.isModalClosed) {
+                console.error('VC: AI summary generation failed', err);
+                const msg = err instanceof Error ? err.message : String(err);
+                if (this.statusEl) this.statusEl.textContent = 'AI summary failed: ' + msg;
+                new Notice('AI summary failed: ' + msg);
+            }
+        } finally {
+            this.isGenerating = false;
+            if (!this.isModalClosed && this.aiBtnEl) {
+                this.aiBtnEl.disabled = false;
+                this.aiBtnEl.textContent = 'Regenerate with AI';
+            }
+        }
+    }
+
+    private submitAndClose(): void {
+        this.isModalClosed = true;
+        const name = this.versionName.trim();
+        const description = this.versionDesc.trim();
+        this.close();
+        this.onSubmit({ name, description });
     }
 
     override onClose(): void {
+        this.isModalClosed = true;
         this.contentEl.empty();
     }
 }
 
+export function openSaveVersionModalOrSave(plugin: Plugin, store: AppStore): void {
+    const state = store.getState().app;
+    const shouldPrompt = Boolean(
+        state.effectiveSettings?.enableVersionNaming ||
+        state.effectiveSettings?.enableVersionDescription ||
+        state.settings?.enableAiGeneration
+    );
+    if (shouldPrompt) {
+        new PromptVersionNameModal(plugin.app, plugin, store, ({ name, description }) => {
+            store.dispatch(thunks.saveNewVersion({
+                ...(name ? { name } : {}),
+                ...(description ? { description } : {})
+            }));
+        }).open();
+    } else {
+        store.dispatch(thunks.saveNewVersion({}));
+    }
+}
 export class RestoreDeletedNoteModal extends Modal {
     constructor(app: App, private plugin: Plugin, private store: AppStore) {
         super(app);
@@ -179,15 +371,7 @@ export function registerCommands(plugin: Plugin, store: AppStore): void {
             const activeFile = plugin.app.workspace.getActiveFile();
             if (isValidNoteFile(activeFile)) {
                 if (!checking) {
-                    const state = store.getState().app;
-                    const shouldPrompt = state.effectiveSettings?.enableVersionNaming ?? true;
-                    if (shouldPrompt) {
-                        new PromptVersionNameModal(plugin.app, (name) => {
-                            store.dispatch(thunks.saveNewVersion(name ? { name } : {}));
-                        }).open();
-                    } else {
-                        store.dispatch(thunks.saveNewVersion({}));
-                    }
+                    openSaveVersionModalOrSave(plugin, store);
                 }
                 return true;
             }

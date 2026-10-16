@@ -1,5 +1,20 @@
 ***
 
+**Version: 2.0.1 (October 2026) — Live Release**
+
+#### ✨ New Features
+* **Opt-In AI Milestone Summaries:** Automatic generation of concise titles and bulleted change descriptions based on unified note diffs. Defaults to OFF (100% air-gapped). Supports cloud Gemini or offline local endpoints (Ollama / LocalAI).
+* **Deprecation-Proof Markdown Audit Log:** Every intentional snapshot automatically appends a clean, human-readable unified diff directly to `.versiondb/<noteId>/HISTORY.md`.
+
+#### 🔒 Security Enhancements
+* **OS Keychain Credential Isolation:** AI API keys are stored strictly in Obsidian `app.secretStorage` or OS DPAPI keychain—never in plaintext `data.json` or committed to git.
+* **Dirty-Lock Keystroke Protection:** Manual keystrokes in title or description fields immediately lock them against async AI overwrites.
+
+#### 🔧 Bug Fixes & Refinements
+* **Surgical Diff Truncation & Resiliency:** Improved diffing mechanics utilizing word-level diffing and single-hunk overflow guarding for large offline edits to respect model context windows.
+
+***
+
 **Version: 2.0.0 (October 2026) — Local & Hardened Edition**
 
 #### Security & Air-Gap Hardening

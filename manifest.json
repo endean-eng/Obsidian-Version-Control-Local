@@ -1,7 +1,7 @@
 {
 	"id": "version-control",
 	"name": "Version Control",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"minAppVersion": "1.10.0",
 	"description": "Air-gapped, 100% local per-note version control: intentional snapshots, in-file branching, side-by-side diffs, timeline search, and deleted-note recovery.",
 	"author": "Elijah Dean (Originally by Yuichi-Aragi)",
