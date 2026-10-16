@@ -10,6 +10,7 @@ This roadmap tracks the development lifecycle of the Dean Innovative Design fork
 *   **Surgical Diff Truncation & Resiliency:** Improved diffing mechanics utilizing `diffWordsWithSpace` and single-hunk overflow guarding for large offline edits.
 
 ## v2.0.2
+*   **Mobile UI/UX Refinement:** Address inconsistent compatibility and layout issues on iOS and Android platforms to ensure a robust mobile experience.
 *   **HISTORY.md Retroactive Synchronization:** Ensure bidirectional synchronization of `.versiondb/<noteId>/HISTORY.md` when a user retroactively edits a version's title/description or deletes a version directly from the UI sidebar.
 *   **Offline Local Ollama Benchmarking:** Introduce an automated benchmarking test suite to measure token generation latency and format constraint adherence for models like `llama3.2`, `mistral`, and `qwen2.5` via `localhost:11434`.
 

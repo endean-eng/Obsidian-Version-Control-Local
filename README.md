@@ -211,7 +211,7 @@ For immediate use:
 
 ## Platform Support
 
-* ✅ **Mobile** (iOS & Android)
+* ⚠️ **Mobile** (iOS & Android) - *Compatibility may still be inconsistent*
 * ✅ **Desktop** (Windows, macOS, Linux)
 
 ---
