@@ -279,9 +279,10 @@ async function main() {
   const versions = existsSync(versionFile) ? readJsonFile(versionFile) : {};
   const packageJson = readJsonFile('package.json');
   
-  // Prevent duplicate versions
-  if (versions[manifestVersion]) {
-    throw new Error(`Version ${manifestVersion} already exists in ${versionFile}`);
+    // Skip cleanly if version is already recorded with same minAppVersion
+  if (versions[manifestVersion] && versions[manifestVersion] === minAppVersion) {
+    console.log(`ℹ️ Version ${manifestVersion} already recorded in ${versionFile}. No release needed.`);
+    process.exit(0);
   }
   
   // Check if stable version conflicts with beta
